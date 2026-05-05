@@ -1,7 +1,8 @@
 #include <SFML/Graphics.hpp>
-
 #include <iostream>
-
+#include "Engine.h"
+#include "Matrices.h"
+#include "Particle.h"
 
 
 
@@ -15,48 +16,90 @@ using namespace std;
 int main()
 
 {
+	srand(time(0));
 
-	int pixelWidth = VideoMode::getDesktopMode().width;
+	int pixelWidth = VideoMode::getDesktopMode().width/2;
 
-	int pixelHeight = VideoMode::getDesktopMode().height;
+	int pixelHeight = VideoMode::getDesktopMode().height/2;
 
 	VideoMode vm(pixelWidth, pixelHeight);
-	RenderWindow window(vm, "Rainbow Screen", Style::Default);
+	RenderWindow window(vm, "Particle", Style::Default);
+
+	//-----reorganize this into particle and engine classes later-----//
+
+	View cartesianPlane;
+	cartesianPlane.setCenter(0, 0);
+	cartesianPlane.setSize((float)pixelWidth, (float)pixelHeight);
+
+	Vector2f center = { 0,0 };
+	int numPoints = rand() % 50 + 50;
+	vector<Vector2f> vertices(numPoints);
+	
+	float theta = ((float)rand() / RAND_MAX) * M_PI / 2.0;
+	float dTheta = 2 * M_PI / (numPoints - 1);
+
+	for (int i = 0; i < numPoints; ++i) {
+		float r = rand() % 80 + 20;
+		float dx = r * cos(theta);
+		float dy = r * sin(theta);
+		//dx and dy are the offsets from the center, so we add them to the center coordinates
+
+		vertices[i].x = center.x + dx;
+		vertices[i].y = center.y + dy;
+		theta += dTheta;
+		//uses trig to spin around unit circle
+	}
 
 	VertexArray particle1(TriangleFan);
-	particle1.resize(5);
+	particle1.resize(numPoints + 1);
 
-	Vector2f center = { (float)pixelWidth / 2.0f, (float)pixelHeight / 2.0f };
-
-	particle1[0].color = Color::Blue;
-	particle1[0].position = center;
-	particle1[1].color = Color::Red;
-	particle1[1].position = { center.x - 100.0f, center.y - 100.0f };
-	particle1[2].color = Color::Red;
-	particle1[2].position = { center.x + 100.0f, center.y + 0.0f };
-	particle1[3].color = Color::Red;
-	particle1[3].position = { center.x + 150.0f, center.y + 100.0f };
-	particle1[4].color = Color::Red;
-	particle1[4].position = { center.x + 0.0f, center.y + 100.0f };
-
+	particle1[0].color = Color::White;
+	particle1[0].position = (Vector2f)window.mapCoordsToPixel(center, cartesianPlane);
+	
+	for (int i = 0; i < numPoints; i++)
+	{
+		particle1[i + 1].position = (Vector2f)window.mapCoordsToPixel(vertices[i], cartesianPlane);
+		particle1[i + 1].color = Color::Blue;
+	}
+	//---put all this generation inside particle constructor later---//
 
 	while (window.isOpen())
 
 	{
 
 		///Input
-
-		if (Keyboard::isKeyPressed(Keyboard::Escape))
-
+		Event event;
+		while (window.pollEvent(event))
 		{
+			if (event.type == Event::KeyPressed)
+			{
+				// Handle the player quitting
+				if (event.key.code == Keyboard::Escape)
+				{
+					window.close();
+				}
 
-			window.close();
+			}
 
+			if (event.type == Event::Closed)
+			{
+				window.close();
+			}
+
+			if (event.type == Event::MouseButtonPressed)
+			{
+				if (event.mouseButton.button == Mouse::Left)
+				{
+					std::cout << "the left button was pressed" << std::endl;
+					std::cout << "mouse x(pixel): " << event.mouseButton.x << std::endl;
+					std::cout << "mouse y(pixel): " << event.mouseButton.y << std::endl;
+					Vector2f coord = window.mapPixelToCoords({ event.mouseButton.x,event.mouseButton.y }, cartesianPlane);
+					std::cout << "mouse x(coordinate): " << coord.x << std::endl;
+					std::cout << "mouse y(coordinate): " << coord.y << std::endl;
+
+				}
+			}
 		}
-
-
-
-
 		///Update
 
 
