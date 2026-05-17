@@ -1,10 +1,57 @@
 #include "Particle.h"
 
-/*
+
+
+Particle::Particle(RenderTarget& target, int numPoints, Vector2i mouseClickPosition) : m_A(2, numPoints)
+{
+    m_ttl = TTL;
+    m_numPoints = numPoints;
+    m_radiansPerSec = (float)rand() / (M_PI) * M_PI;
+    //TODO: m_cartesianPlane;
+    // setCenter(0,0);
+    // setSize(target.getSize().x, (-1,0) * target.getSize().y)
+    
+    //TODO: m_centerCoordinate;
+    //m_center = target.mapPixelToCoords()
+
+    m_vx = rand() % (500 - 100 + 1) + 100;             // 500 is max, 100 is min
+    m_vy = rand() % (500 - 100 + 1) + 100;
+    m_color1 = Color::Cyan;
+    m_color2 = Color::Magenta;
+
+    float theta = (float)rand()/(M_PI/2);               // this is a random starting angle point
+    float dTheta = 2 * M_PI / (numPoints - 1);          // this is the angle between each vertex based on numPoints
+    for (int j = 0; j < numPoints; j++)
+    {
+        float r, dx, dy;
+        r = rand() % (80 - 20 + 1) + 20;
+        dx = r * cos(theta);
+        dy = r * sin(theta);
+        m_A(0,j) = m_centerCoordinate.x + dx;
+        m_A(1,j) = m_centerCoordinate.y + dy;
+        theta += dTheta;
+    }
+}
+
+void Particle::draw(RenderTarget& target, RenderStates states) const override
+{}
+
+void Particle::update(float dt)
+{}
+
 bool Particle::almostEqual(double a, double b, double eps)
 {
 	return fabs(a - b) < eps;
 }
+
+void rotate(double theta)
+{}
+
+void scale(double c)
+{}
+
+void translate(double xShift, double yShift)
+{}
 
 void Particle::unitTests()
 {
@@ -143,4 +190,4 @@ void Particle::unitTests()
     }
 
     cout << "Score: " << score << " / 7" << endl;
-}*/
+}
