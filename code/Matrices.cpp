@@ -7,7 +7,7 @@ Matrices::Matrix::Matrix(int _rows, int _cols)
     rows = _rows;
     cols = _cols;
     for (int i = 0; i < _rows; i++)
-        for (int j = 0; j < _cols; j++)
+        for (int j = 0; j < _cols; j++) 
             a.at(i).at(j) = 0.0;
 }
 ///Add each corresponding element.
@@ -70,4 +70,23 @@ ostream& Matrices::operator<<(ostream& os, const Matrices::Matrix& a)
         }
         os << "\n";
     }
+}
+
+Matrices::ScalingMatrix::ScalingMatrix(double scale) : Matrices::Matrix(2,2)
+{
+    a.at(0).at(0) = scale;
+    a.at(1).at(1) = scale;
+}
+
+Matrices::RotationMatrix::RotationMatrix(double theta) : Matrices::Matrix(2,2)
+{
+    a.at(0).at(0) = cos(theta);
+    a.at(0).at(1) = -sin(theta);
+    a.at(1).at(0) = sin(theta);
+    a.at(1).at(1) = cos(theta);
+}
+
+Matrices::TranslationMatrix::TranslationMatrix(double xShift, double yShift, int nCols) : Matrices::Matrix(2,2)
+{
+    
 }
