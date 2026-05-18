@@ -1,6 +1,6 @@
 #ifndef MATRIX_H_INCLUDED
 #define MATRIX_H_INCLUDED
-
+#pragma once
 #include <cmath>
 #include <iostream>
 #include <vector>

@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include <SFML/Graphics.hpp>
 #include "Particle.h"
 using namespace sf;
@@ -10,7 +9,7 @@ class Engine
 private:
 	// A regular RenderWindow
 	RenderWindow m_Window;
-
+	
 	//vector for Particles
 	vector<Particle> m_particles;
 

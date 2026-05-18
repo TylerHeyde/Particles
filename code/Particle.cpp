@@ -6,52 +6,97 @@ Particle::Particle(RenderTarget& target, int numPoints, Vector2i mouseClickPosit
 {
     m_ttl = TTL;
     m_numPoints = numPoints;
-    m_radiansPerSec = (float)rand() / (M_PI) * M_PI;
+    m_radiansPerSec = ((float)rand() / (M_PI)) * M_PI;
     //TODO: m_cartesianPlane;
-    // setCenter(0,0);
-    // setSize(target.getSize().x, (-1,0) * target.getSize().y)
+	m_cartesianPlane.setCenter(0, 0);
+    m_cartesianPlane.setSize(target.getSize().x, (-1.0) * target.getSize().y);
     
-    //TODO: m_centerCoordinate;
-    //m_center = target.mapPixelToCoords()
+    
+    m_centerCoordinate = {target.mapPixelToCoords(Vector2i(mouseClickPosition.x, mouseClickPosition.y), m_cartesianPlane)}; //change 0,0 to mouseClickPosition mapped to cartesian plane
 
-    m_vx = rand() % (500 - 100 + 1) + 100;             // 500 is max, 100 is min
+
+    m_vx = rand() % (500 - 100 + 1) + 100;            // 500 is max, 100 is min
+    if (rand() % 2 == 0)
+        m_vx *= -1;
     m_vy = rand() % (500 - 100 + 1) + 100;
-    m_color1 = Color::Cyan;
-    m_color2 = Color::Magenta;
+    m_color1 = Color(rand() % 256, rand() % 256, rand() % 256);
+	m_color2 = Color(rand() % 256, rand() % 256, rand() % 256);
 
-    float theta = (float)rand()/(M_PI/2);               // this is a random starting angle point
-    float dTheta = 2 * M_PI / (numPoints - 1);          // this is the angle between each vertex based on numPoints
+    float theta = ((float)rand() / RAND_MAX) * M_PI / 2.0;              // this is a random starting angle point
+    float dTheta = 2 * M_PI / (numPoints - 1);        // this is the angle between each vertex based on numPoints
+    
+    
+
     for (int j = 0; j < numPoints; j++)
     {
         float r, dx, dy;
-        r = rand() % (80 - 20 + 1) + 20;
+        r = rand() % (80 - 20 + 1) + 20;     /// try rand() % 80 + 20; if stuck
         dx = r * cos(theta);
         dy = r * sin(theta);
+        //dx and dy are the offsets from the center, so we add them to the center coordinates
         m_A(0,j) = m_centerCoordinate.x + dx;
         m_A(1,j) = m_centerCoordinate.y + dy;
         theta += dTheta;
+        //uses trig to spin around unit circle
     }
+    
 }
 
-void Particle::draw(RenderTarget& target, RenderStates states) const override
-{}
+void Particle::draw(RenderTarget& target, RenderStates states) const 
+{
+    VertexArray lines(TriangleFan, m_numPoints + 1);
+	Vector2f center = (Vector2f)target.mapCoordsToPixel(m_centerCoordinate, m_cartesianPlane);
 
-void Particle::update(float dt)
-{}
+    lines[0].color = m_color1;
+    lines[0].position = center;
+
+    for (int j = 1; j <= m_numPoints; j++)
+    {
+        lines[j].position = (Vector2f)target.mapCoordsToPixel(Vector2f(m_A(0, j - 1), m_A(1, j - 1)), m_cartesianPlane);
+        lines[j].color = m_color2;
+    }
+    target.draw(lines);
+}
+
+void Particle::update(float dt){
+    m_ttl -= dt;
+    rotate(m_radiansPerSec * dt);
+    scale(SCALE);
+    float dx, dy;
+    dx = m_vx * dt;
+    m_vy -= G * dt;
+    dy = m_vy * dt;
+	translate(dx, dy);
+
+}
 
 bool Particle::almostEqual(double a, double b, double eps)
 {
 	return fabs(a - b) < eps;
 }
 
-void rotate(double theta)
-{}
+void Particle::rotate(double theta){
+    Vector2f temp = m_centerCoordinate;
+    translate(-m_centerCoordinate.x, -m_centerCoordinate.y);
+	RotationMatrix R(theta);
+	m_A = R * m_A;
+	translate(temp.x, temp.y);
+}
 
-void scale(double c)
-{}
+void Particle::scale(double c){
+	Vector2f temp = m_centerCoordinate;
+	translate(-m_centerCoordinate.x, -m_centerCoordinate.y);
+	ScalingMatrix S(c);
+	m_A = S * m_A;
+    translate(temp.x, temp.y);
+}
 
-void translate(double xShift, double yShift)
-{}
+void Particle::translate(double xShift, double yShift){
+	TranslationMatrix T(xShift, yShift, m_A.getCols());
+	m_A = T + m_A;
+	m_centerCoordinate.x += xShift;
+	m_centerCoordinate.y += yShift;
+}
 
 void Particle::unitTests()
 {
